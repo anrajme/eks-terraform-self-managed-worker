@@ -1,8 +1,12 @@
+data "http" "myip" {
+  url = "http://ipv4.icanhazip.com"
+}
+
 # Allow inbound traffic from your local workstation external IP
 # to the Kubernetes. You will need to replace A.B.C.D below with
 # your real IP. Services like icanhazip.com can help you find this.
 resource "aws_security_group_rule" "tf-eks-cluster-ingress-workstation-https" {
-  cidr_blocks       = ["${var.accessing_computer_ip}/32"]
+  cidr_blocks       = ["${chomp(data.http.myip.body)}/32"]
   description       = "Allow workstation to communicate with the cluster API Server"
   from_port         = 443
   protocol          = "tcp"
@@ -11,7 +15,6 @@ resource "aws_security_group_rule" "tf-eks-cluster-ingress-workstation-https" {
   type              = "ingress"
 }
 
-########################################################################################
 # Setup worker node security group
 
 resource "aws_security_group_rule" "tf-eks-node-ingress-self" {
@@ -54,5 +57,3 @@ resource "aws_security_group_rule" "tf-eks-node-ingress-master" {
   to_port                  = 443
   type                     = "ingress"
 }
-
-

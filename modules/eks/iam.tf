@@ -28,7 +28,6 @@ resource "aws_iam_role_policy_attachment" "tf-cluster-AmazonEKSServicePolicy" {
   role       = "${aws_iam_role.tf-eks-master.name}"
 }
 
-########################################################################################
 # Setup IAM role & instance profile for worker nodes
 
 resource "aws_iam_role" "tf-eks-node" {

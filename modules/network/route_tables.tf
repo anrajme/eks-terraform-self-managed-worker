@@ -1,4 +1,4 @@
-resource "aws_route_table" "application" {
+resource "aws_route_table" "private" {
   count = "${var.subnet_count}"
   vpc_id = "${aws_vpc.example.id}"
   route {
@@ -6,18 +6,11 @@ resource "aws_route_table" "application" {
     nat_gateway_id = "${aws_nat_gateway.example.*.id[count.index]}"
   }
   tags = {
-    Name = "example_application"
+    Name = "example_private"
   }
 }
 
-resource "aws_route_table" "database" {
-  vpc_id = "${aws_vpc.example.id}"
-
-  tags = {
-    Name = "example_database"
-  }
-}
-resource "aws_route_table" "gateway" {
+resource "aws_route_table" "public" {
   vpc_id = "${aws_vpc.example.id}"
 
   route {
@@ -25,27 +18,21 @@ resource "aws_route_table" "gateway" {
     gateway_id = "${aws_internet_gateway.example.id}"
   }
   tags = {
-    Name = "example_gateway"
+    Name = "example_public"
   }
 }
 
-resource "aws_route_table_association" "application" {
+resource "aws_route_table_association" "private" {
   count = "${var.subnet_count}"
 
-  subnet_id      = "${aws_subnet.application.*.id[count.index]}"
-  route_table_id = "${aws_route_table.application.*.id[count.index]}"
+  subnet_id      = "${aws_subnet.private.*.id[count.index]}"
+  route_table_id = "${aws_route_table.private.*.id[count.index]}"
 }
 
-resource "aws_route_table_association" "database" {
+
+resource "aws_route_table_association" "public" {
   count = "${var.subnet_count}"
 
-  subnet_id      = "${aws_subnet.database.*.id[count.index]}"
-  route_table_id = "${aws_route_table.database.id}"
-}
-
-resource "aws_route_table_association" "gateway" {
-  count = "${var.subnet_count}"
-
-  subnet_id      = "${aws_subnet.gateway.*.id[count.index]}"
-  route_table_id = "${aws_route_table.gateway.id}"
+  subnet_id      = "${aws_subnet.public.*.id[count.index]}"
+  route_table_id = "${aws_route_table.public.id}"
 }

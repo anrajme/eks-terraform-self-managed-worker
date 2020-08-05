@@ -1,7 +1,6 @@
-########################################################################################
+
 # Setup AutoScaling Group for worker nodes
 
-# Setup data source to get amazon-provided AMI for EKS nodes
 data "aws_ami" "eks-worker" {
   filter {
     name   = "name"
@@ -12,14 +11,7 @@ data "aws_ami" "eks-worker" {
   owners      = ["602401143452"] # Amazon EKS AMI Account ID
 }
 
-# Is provided in demo code, no idea what it's used for though! TODO: DELETE
-# data "aws_region" "current" {}
 
-# EKS currently documents this required userdata for EKS worker nodes to
-# properly configure Kubernetes applications on the EC2 instance.
-# We utilize a Terraform local here to simplify Base64 encode this
-# information and write it into the AutoScaling Launch Configuration.
-# More information: https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
 locals {
   tf-eks-node-userdata = <<USERDATA
 #!/bin/bash
@@ -57,10 +49,9 @@ resource "aws_autoscaling_group" "tf_eks" {
   max_size             = "3"
   min_size             = 1
   name                 = "terraform-tf-eks"
-  #vpc_zone_identifier  = ["${var.app_subnet_ids}"]
-  vpc_zone_identifier = flatten(["${var.app_subnet_ids}"])
+  vpc_zone_identifier = flatten(["${var.private_subnet_ids}"])
   target_group_arns    = ["${aws_lb_target_group.tf_eks.arn}"]
-  
+
   tag {
     key                 = "Name"
     value               = "terraform-tf-eks"

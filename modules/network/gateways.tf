@@ -15,7 +15,7 @@ resource "aws_eip" "nat_gateway" {
 resource "aws_nat_gateway" "example" {
   count = "${var.subnet_count}"
   allocation_id = "${aws_eip.nat_gateway.*.id[count.index]}"
-  subnet_id = "${aws_subnet.gateway.*.id[count.index]}"
+  subnet_id = "${aws_subnet.public.*.id[count.index]}"
   tags = {
     Name = "nat_gateway"
   }
