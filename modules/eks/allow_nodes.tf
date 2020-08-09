@@ -5,13 +5,13 @@ data "aws_eks_cluster_auth" "tf_eks" {
 }
 
 
-provider "kubernetes" {
-  host                      = "${aws_eks_cluster.tf_eks.endpoint}"
-  cluster_ca_certificate    = "${base64decode(aws_eks_cluster.tf_eks.certificate_authority.0.data)}"
-  token                      = "${data.aws_eks_cluster_auth.tf_eks.token}"
-  load_config_file          = false
-  version = "~> 1.5"
-}
+#provider "kubernetes" {
+#  host                      = "${aws_eks_cluster.tf_eks.endpoint}"
+#  cluster_ca_certificate    = "${base64decode(aws_eks_cluster.tf_eks.certificate_authority.0.data)}"
+#  token                      = "${data.aws_eks_cluster_auth.tf_eks.token}"
+#  load_config_file          = false
+#  version = "~> 1.5"
+#}
 
 # Allow worker nodes to join cluster via config map
 resource "kubernetes_config_map" "aws_auth" {
@@ -30,4 +30,23 @@ EOF
   }
   depends_on = [
     aws_eks_cluster.tf_eks,aws_autoscaling_group.tf_eks]
+}
+
+resource "null_resource" "configure-kubectl-local" {
+  provisioner "local-exec" {
+    command = <<EOT
+    aws eks update-kubeconfig --name "example-cluster" --region ${var.aws_region} --kubeconfig ~/.kube/config;
+EOT
+  }
+
+  depends_on = [
+    aws_eks_cluster.tf_eks,aws_autoscaling_group.tf_eks]
+}
+
+provider "kubernetes" {
+  host                      = "${aws_eks_cluster.tf_eks.endpoint}"
+  cluster_ca_certificate    = "${base64decode(aws_eks_cluster.tf_eks.certificate_authority.0.data)}"
+  token                      = "${data.aws_eks_cluster_auth.tf_eks.token}"
+  load_config_file          = false
+  version = "~> 1.5"
 }
